@@ -1,6 +1,25 @@
+# Solo5 Netmap branch
+
+## Overview
+This is a branch for Netmap integration (just a prototype). It has Netmap ring buffers shared by the guest and host OS layers.
+
+## How to use this branch
+1. Install Netmap. (eg. get its source code from github.com and then execute `configure` and `make install`)
+2. Make sure that a target Netmap network port you want to use has only 1 RX/TX queue pair. (You may need to use a driver option to disable multi-queue support on the port, eg. MQ=0,0 in the ixgbe driver, and you can check it in /proc/interrupts)
+3. Execute `opam pin add solo5-kernel-ukvm /path/to/this/dir`.
+4. Move to your MirageOS Unikernel directory, and then compile your MirageOS Unikernel program as usual.
+5. Kick your Unikernel with `sudo ./ukvm-bin --netmap=eth0 ./program.ukvm`, where `eth0` is a Netmap port you want to use.
+
+## Limitations
+- Sorry, no implementation for FreeBSD OS. The author tested this branch only with a server having Intel X520 PFs/VFs and running amd64-based Ubuntu 16.04 LTS.
+- A memory size value for the `--mem=` option in ukvm-bin must be equal to or smaller than 1020 due to additional 4MB memory use for Netmap.
+- This prototype supports only 1 TX/RX queue pair.
+
+# From the original README.md
+
                 |      ___|  
       __|  _ \  |  _ \ __ \  
-    \__ \ (   | | (   |  ) | 
+    \__ \ (   | | (   |  ) |
     ____/\___/ _|\___/____/  
 
 # About Solo5
@@ -55,7 +74,7 @@ unikernel.
 
 The following examples use the standalone
 [test_ping_serve](tests/test_ping_serve/test_ping_serve.c) unikernel which is
-built as part of the normal Solo5 build process. 
+built as part of the normal Solo5 build process.
 
 `test_ping_serve` is a minimalist network test which will respond only to ARP
 and ICMP echo requests sent to the hard-coded IP address of `10.0.0.2`. It

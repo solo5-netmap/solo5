@@ -28,6 +28,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
+#include <inttypes.h>
 
 #include "ukvm_cpu_x86_64.h"
 
@@ -65,6 +67,25 @@ void ukvm_x86_setup_pagetables(uint8_t *mem, size_t mem_size)
     *pml4 = X86_PDPTE_BASE | (X86_PDPT_P | X86_PDPT_RW);
     *pdpte = X86_PDE_BASE | (X86_PDPT_P | X86_PDPT_RW);
     for (paddr = 0; paddr < mem_size; paddr += X86_GUEST_PAGE_SIZE, pde++)
+        *pde = paddr | (X86_PDPT_P | X86_PDPT_RW | X86_PDPT_PS);
+}
+
+void ukvm_x86_add_pagetables(uint8_t *mem, uint64_t mem_start, size_t mem_size)
+{
+    uint64_t *pde = (uint64_t *)(mem + X86_PDE_BASE);
+    uint64_t paddr;
+
+    /*
+     * For simplicity we currently use 2MB pages and only a single
+     * PML4/PDPTE/PDE.  Sanity check that the guest size is a multiple of the
+     * page size and will fit in a single PDE (512 entries).
+     */
+    assert((mem_size & (X86_GUEST_PAGE_SIZE - 1)) == 0);
+    assert(mem_size <= (X86_GUEST_PAGE_SIZE * 512));
+
+    for (paddr = 0x0; paddr < mem_start; paddr += X86_GUEST_PAGE_SIZE)
+		pde++;
+    for (paddr = mem_start; paddr < mem_start + mem_size; paddr += X86_GUEST_PAGE_SIZE, pde++)
         *pde = paddr | (X86_PDPT_P | X86_PDPT_RW | X86_PDPT_PS);
 }
 

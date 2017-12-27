@@ -39,6 +39,12 @@ void _start(void *arg)
     time_init(arg);
     net_init();
 
+/* TDOO: Need to modify this Netmap buffer initialization */
+#ifdef UKVM_NETMAP
+    log(INFO, "MirageOS kernel is configured with Netmap on the guest OS\n");
+    configure_netmap_rings();
+#endif
+
     ret = solo5_app_main(cmdline);
     log(DEBUG, "Solo5: solo5_app_main() returned with %d\n", ret);
 

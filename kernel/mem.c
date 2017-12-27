@@ -32,6 +32,7 @@ void mem_init(void)
     mem_size = platform_mem_size();
     heap_start = ((uint64_t)&_end + PAGE_SIZE - 1) & PAGE_MASK;
     heap_top = heap_start;
+    log(INFO, "[kernel] mem_size = %lu\n", mem_size);
     /*
      * Cowardly refuse to run with less than 512KB of free memory.
      */

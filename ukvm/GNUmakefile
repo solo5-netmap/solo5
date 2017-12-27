@@ -23,9 +23,15 @@
 all: ukvm-bin
 
 Makefile.ukvm: ukvm-configure
+ifeq ($(NET), netmap)
+	sed -i -e 's/^NET=.*/NET=netmap/' ./ukvm-configure 
+else
+	sed -i -e 's/^NET=.*/NET=/' ./ukvm-configure 
+endif
 	./ukvm-configure . blk net gdb
 
 -include Makefile.ukvm
 
 clean: ukvm-clean
 	$(RM) Makefile.ukvm
+	sed -i -e 's/^NET=.*/NET=/' ./ukvm-configure 

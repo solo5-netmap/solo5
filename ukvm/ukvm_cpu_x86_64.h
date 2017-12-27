@@ -213,6 +213,16 @@ static const struct x86_sreg ukvm_x86_sreg_unusable = {
 
 void ukvm_x86_mem_size(size_t *mem_size);
 void ukvm_x86_setup_pagetables(uint8_t *mem, size_t mem_size);
+void ukvm_x86_add_pagetables(uint8_t *mem, uint64_t mem_start, size_t mem_size);
 void ukvm_x86_setup_gdt(uint8_t *mem);
+
+/*
+ * Mapping size for Netmap RX/TX ring buffers.
+ */
+#ifdef UKVM_MODULE_NETMAP
+#define NETMAP_TX_MAP_SIZE 0x100000
+#define NETMAP_RX_MAP_SIZE 0x100000
+#define NETMAP_TXRX_MAP_SIZE (NETMAP_TX_MAP_SIZE+NETMAP_RX_MAP_SIZE)
+#endif
 
 #endif /* UKVM_CPU_X86_64_H */

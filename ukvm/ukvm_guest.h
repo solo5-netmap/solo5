@@ -169,6 +169,10 @@ enum ukvm_hypercall {
     UKVM_HYPERCALL_NETINFO,
     UKVM_HYPERCALL_NETWRITE,
     UKVM_HYPERCALL_NETREAD,
+    UKVM_HYPERCALL_NETMAP_RINGINFO,
+    UKVM_HYPERCALL_NETMAPINFO,
+    UKVM_HYPERCALL_NETMAPWRITE,
+    UKVM_HYPERCALL_NETMAPREAD,
     UKVM_HYPERCALL_HALT,
     UKVM_HYPERCALL_MAX
 };
@@ -223,12 +227,14 @@ struct ukvm_blkread {
 };
 
 /* UKVM_HYPERCALL_NETINFO */
+/* UKVM_HYPERCALL_NETMAPINFO */
 struct ukvm_netinfo {
     /* OUT */
     char mac_str[18];
 };
 
 /* UKVM_HYPERCALL_NETWRITE */
+/* UKVM_HYPERCALL_NETMAPWRITE */
 struct ukvm_netwrite {
     /* IN */
     UKVM_GUEST_PTR(const void *) data;
@@ -239,12 +245,39 @@ struct ukvm_netwrite {
 };
 
 /* UKVM_HYPERCALL_NETREAD */
+/* UKVM_HYPERCALL_NETMAPREAD */
 struct ukvm_netread {
     /* IN */
     UKVM_GUEST_PTR(void *) data;
 
     /* IN/OUT */
     size_t len;
+
+    /* OUT */
+    int ret;
+};
+
+/* UKVM_HYPERCALL_NETMAP_RINGINFO */
+struct ukvm_netmap_ring_addr{
+    uint64_t ring_base;
+
+    int64_t buf_base;
+    uint32_t num_slots;
+    uint32_t nr_buf_size;
+
+    uint64_t head_addr;
+    uint64_t cur_addr;
+    uint64_t tail_addr;
+
+    uint64_t slot_base;
+
+	uint32_t index_offset;
+};
+
+struct ukvm_netmap_ringinfo {
+    /* IN */
+    struct ukvm_netmap_ring_addr rx;
+    struct ukvm_netmap_ring_addr tx;
 
     /* OUT */
     int ret;
@@ -262,6 +295,22 @@ struct ukvm_poll {
 
     /* OUT */
     int ret;
+};
+
+/*
+ * # of Netmap buffer slots which can be access from the guest kernel for TX/RX
+ */
+#define NUM_NETMAP_SLOTS 64
+
+/*
+ * Canonical list of host memory regions mapped as the guest memory
+ */
+enum ukvm_memregion {
+    UKVM_MEMCORE_REGION,
+    UKVM_NETMAP_RXRING_META_REGION,
+    UKVM_NETMAP_RXRING_BUF_REGION,
+    UKVM_NETMAP_TXRING_META_REGION,
+    UKVM_NETMAP_TXRING_BUF_REGION,
 };
 
 #endif /* UKVM_GUEST_H */

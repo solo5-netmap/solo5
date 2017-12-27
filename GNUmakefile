@@ -16,6 +16,8 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 # CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+NET=netmap
+
 export TOP=$(abspath .)
 $(TOP)/Makeconf:
 	./configure.sh
@@ -36,8 +38,8 @@ endif
 .PHONY: ukvm
 ukvm:
 ifeq ($(BUILD_UKVM), yes)
-	$(MAKE) -C kernel ukvm
-	$(MAKE) -C ukvm
+	$(MAKE) -C kernel ukvm NET=$(NET)
+	$(MAKE) -C ukvm NET=$(NET)
 	$(MAKE) -C tests ukvm
 endif
 
@@ -107,6 +109,12 @@ opam-ukvm-install: solo5-kernel-ukvm.pc ukvm
 	cp kernel/ukvm/solo5.o kernel/ukvm/solo5.lds $(OPAM_UKVM_LIBDIR)
 	mkdir -p $(OPAM_BINDIR)
 	mkdir -p $(OPAM_UKVM_LIBDIR)/src
+# Netmap device handling
+ifeq ($(NET), netmap)
+	sed -i -e 's/^NET=.*/NET=netmap/' ukvm/ukvm-configure 
+else
+	sed -i -e 's/^NET=.*/NET=/' ukvm/ukvm-configure 
+endif
 	cp -R ukvm $(OPAM_UKVM_LIBDIR)/src
 	cp ukvm/ukvm-configure $(OPAM_BINDIR)
 	mkdir -p $(PREFIX)/lib/pkgconfig

@@ -68,6 +68,13 @@ add_header ()
     done
 }
 
+add_netmap_header ()
+{
+    for i in "$@"; do
+        UKVM_HEADERS="${UKVM_HEADERS} /usr/local/include/net/${i}"
+    done
+}
+
 add_module ()
 {
     if [ ! -f ${UKVM_SRC}/ukvm_module_$1.c ]; then
@@ -86,9 +93,25 @@ UKVM_OBJS=
 add_obj ukvm_core.o ukvm_elf.o ukvm_main.o
 add_header ukvm.h ukvm_guest.h ukvm_cc.h
 
+# For switching TAP or Netmap
+NET=
+
 for module in "$@"; do
     [ -z "${module}" ] && continue
-    add_module ${module}
+
+    # For switching TAP or Netmap
+    if [ "${module}" = "net" ]; then
+		if [ "${NET}" = "netmap" ]; then
+            echo "Netmap enabled!!"
+			add_module ${NET}
+			add_netmap_header netmap.h netmap_user.h
+			add_cflags "-DNETMAP_WITH_LIBS"
+		else
+			add_module ${module}
+		fi
+	else
+		add_module ${module}
+	fi
 done
 
 [ -n "${UKVM_STATIC}" ] && UKVM_LDFLAGS="-static"
@@ -124,7 +147,8 @@ cat <<EOF> Makefile.ukvm
 all: ukvm-bin
 
 UKVM_CC=${UKVM_CC}
-UKVM_CFLAGS=-Wall -Werror -std=c99 -O2 -g ${UKVM_CFLAGS}
+#UKVM_CFLAGS=-Wall -Werror -std=c99 -O2 -g ${UKVM_CFLAGS}
+UKVM_CFLAGS=-Wall -Werror -O2 -g ${UKVM_CFLAGS}
 UKVM_LDFLAGS=${UKVM_LDFLAGS}
 UKVM_LDLIBS=${UKVM_LDLIBS}
 

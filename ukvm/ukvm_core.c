@@ -51,6 +51,9 @@ struct ukvm_module *ukvm_core_modules[] = {
 #ifdef UKVM_MODULE_NET
     &ukvm_module_net,
 #endif
+#ifdef UKVM_MODULE_NETMAP
+    &ukvm_module_netmap,
+#endif
 #ifdef UKVM_MODULE_GDB
     &ukvm_module_gdb,
 #endif

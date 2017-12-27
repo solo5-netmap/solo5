@@ -37,6 +37,17 @@ ukvm/platform.o \
 ukvm/platform_intr.o \
 ukvm/time.o
 
+ifeq ($(NET), netmap)
+UKVM_COBJS=\
+$(COMMON_UKVM_COBJS) \
+ukvm/platform_init.o \
+ukvm/poll.o \
+ukvm/tscclock.o \
+ukvm/console.o \
+ukvm/netmap.o \
+ukvm/block.o \
+$(COMMON_COBJS)
+else
 UKVM_COBJS=\
 $(COMMON_UKVM_COBJS) \
 ukvm/platform_init.o \
@@ -46,6 +57,7 @@ ukvm/console.o \
 ukvm/net.o \
 ukvm/block.o \
 $(COMMON_COBJS)
+endif
 
 VIRTIO_COBJS=\
 virtio/boot.o \
@@ -88,7 +100,10 @@ ukvm: ukvm/solo5.o
 muen: muen/solo5.o
 
 CFLAGS+=-D__SOLO5_KERNEL__
-
+ifeq ($(NET), netmap)
+CFLAGS+=-DUKVM_NETMAP
+endif
+ 
 ifeq ($(TARGET_ARCH), x86_64)
 # Prevent the compiler from adding optimizations that use shared FPU state.
 # This is necessary for early boot code and trap handlers.

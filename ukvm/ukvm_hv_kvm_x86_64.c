@@ -38,6 +38,8 @@
 #include "ukvm_hv_kvm.h"
 #include "ukvm_cpu_x86_64.h"
 
+#include <stdio.h>
+
 void ukvm_hv_mem_size(size_t *mem_size) {
     ukvm_x86_mem_size(mem_size);
 }
@@ -154,6 +156,7 @@ void ukvm_hv_vcpu_loop(struct ukvm_hv *hv)
 {
     struct ukvm_hvb *hvb = hv->b;
     int ret;
+	int netmap_init_passed = 0;
 
     while (1) {
         ret = ioctl(hvb->vcpufd, KVM_RUN, NULL);
@@ -182,6 +185,11 @@ void ukvm_hv_vcpu_loop(struct ukvm_hv *hv)
 
         switch (run->exit_reason) {
         case KVM_EXIT_HLT:
+#ifdef UKVM_MODULE_NETMAP
+            if(nm_finalize())
+                errx(1, "Could not finalize a Netmap port");
+            else
+#endif
             /* Guest has halted the CPU, this is considered as a normal exit. */
             return;
 
@@ -195,8 +203,20 @@ void ukvm_hv_vcpu_loop(struct ukvm_hv *hv)
 
             int nr = run->io.port - UKVM_HYPERCALL_PIO_BASE;
             ukvm_hypercall_fn_t fn = ukvm_core_hypercalls[nr];
-            if (fn == NULL)
-                errx(1, "Invalid guest hypercall: num=%d", nr);
+            if (fn == NULL) {
+                /* TDOO: Need to modify this excepction handling for the Netmap initialization */
+                if(nr != UKVM_HYPERCALL_NETMAP_RINGINFO)
+                    errx(1, "Invalid guest hypercall: num=%d", nr);
+                else {
+                    if (netmap_init_passed) {
+                        errx(1, "Invalid guest hypercall: num=%d", nr);
+                    }
+                    else {
+                        netmap_init_passed = 1;
+                        break;
+                    }
+                }
+			}
 
             ukvm_gpa_t gpa =
                 *(uint32_t *)((uint8_t *)run + run->io.data_offset);

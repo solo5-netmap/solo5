@@ -28,6 +28,10 @@ void time_init(struct ukvm_boot_info *bi);
 void console_init(void);
 void net_init(void);
 
+/* netmap.c: Netmap buffer rings for RX and TX */
+void configure_netmap_rings(void);
+int solo5_netmap_get_ringinfo(struct ukvm_netmap_ringinfo *i);
+
 /* tscclock.c: TSC-based clock */
 uint64_t tscclock_monotonic(void);
 int tscclock_init(uint64_t tsc_freq);

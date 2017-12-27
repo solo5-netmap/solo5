@@ -147,6 +147,7 @@ extern struct ukvm_module *ukvm_core_modules[];
 extern struct ukvm_module ukvm_module_core;
 extern struct ukvm_module ukvm_module_blk;
 extern struct ukvm_module ukvm_module_net;
+extern struct ukvm_module ukvm_module_netmap;
 extern struct ukvm_module ukvm_module_gdb;
 
 /*
@@ -207,5 +208,9 @@ int ukvm_gdb_add_breakpoint(struct ukvm_hv *hv, gdb_breakpoint_type type,
  */
 int ukvm_gdb_remove_breakpoint(struct ukvm_hv *hv, gdb_breakpoint_type type,
                                ukvm_gpa_t addr, size_t len);
+/*
+ * Netmap port finalizing
+ */
+int nm_finalize(void);
 
 #endif /* UKVM_H */
